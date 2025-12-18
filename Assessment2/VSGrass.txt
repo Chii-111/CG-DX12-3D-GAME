@@ -1,0 +1,49 @@
+cbuffer SceneConstantBuffer : register(b0)
+{
+    float4x4 VP; 
+    float Time;      
+    float3 padding;   
+};
+
+struct VS_INPUT
+{
+    float4 Pos : POSITION;
+    float3 Normal : NORMAL;
+    float3 Tangent : TANGENT; 
+    float2 TexCoords : TEXCOORD;
+    float4x4 World : WORLD; 
+};
+
+struct PS_INPUT
+{
+    float4 Pos : SV_POSITION;
+    float3 Normal : NORMAL;
+    float3 Tangent : TANGENT; 
+    float2 TexCoords : TEXCOORD;
+    float3 WorldPos : POSITION; 
+};
+
+PS_INPUT VS(VS_INPUT input)
+{
+    PS_INPUT output;
+    
+    float4 pos = input.Pos;
+    
+    float sway = sin(Time * 2.0f + input.World[3][0] * 0.5f + input.World[3][2] * 0.5f);
+    
+    pos.x += sway * pos.y * 0.15f; 
+    
+    // -----------------------------
+
+    float4 posWorld = mul(pos, input.World);
+    output.WorldPos = posWorld.xyz;
+    
+    output.Pos = mul(posWorld, VP);
+    
+    output.Normal = mul(input.Normal, (float3x3)input.World);
+    output.Tangent = mul(input.Tangent, (float3x3)input.World); 
+    
+    output.TexCoords = input.TexCoords;
+    
+    return output;
+}
